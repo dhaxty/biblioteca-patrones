@@ -1,10 +1,4 @@
 target/
 *.db
-*.db-journal
 .idea/
-*.iml
-.vscode/
-.classpath
-.project
-.settings/
-PROGRESS.md
+nbproject/private/
