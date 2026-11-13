@@ -1,6 +1,6 @@
 # AGENTS.md · Biblioteca Universitaria
 
-Guía para agentes de IA (Codex, Antigravity, opencode, etc.) y para el equipo. Léela completa antes de tocar código.
+Guía de arquitectura, patrones y contratos del equipo. Este documento refleja el estado final de integración del proyecto (Partes A, B, C y D).
 
 ## 1. Stack
 
@@ -15,7 +15,7 @@ Guía para agentes de IA (Codex, Antigravity, opencode, etc.) y para el equipo. 
 - **Funciones:** administrar libros físicos, ejemplares (copias), lectores, préstamos, devoluciones, mantenimiento, cuentas del personal y estadísticas.
 - **Fuera de alcance:** reservas, renovaciones, multas, libros digitales, acceso de lectores.
 
-## 3. Reglas de negocio aprobadas (no cambiar sin acuerdo del equipo)
+## 3. Reglas de negocio (Implementadas)
 
 - Máximo **5 préstamos simultáneos** por lector.
 - Plazo de préstamo: **7 días calendario**.
@@ -43,25 +43,24 @@ VIEW → CONTROLLER → SERVICE (+ Facade) → REPOSITORY (interfaz) → JDBC �
 | `repository` | Interfaces para guardar/consultar. | Las interfaces no mencionan JDBC. |
 | `repository.jdbc` | Implementación JDBC sobre SQLite. | No contiene reglas de negocio. |
 
-## 5. Estructura de paquetes y estado actual
+## 5. Estructura de paquetes (Estado: 100% Integrado)
 
 ```
 src/main/java/edu/biblioteca/
-├─ Main.java                      (pendiente · D)
-├─ model/                         Libro, Ejemplar, RegistroMantenimiento            [A · listo]
+├─ Main.java                      Punto de entrada, inicialización y dependencias   [D · listo]
+├─ model/                         Libro, Ejemplar, RegistroMantenimiento, Lector... [A/B/C · listo]
 │  └─ estado/                     EstadoEjemplar + 3 estados + TipoEstado           [A · listo]
-├─ view/                          Frames y paneles Swing                            [D · pendiente]
-├─ controller/                    Controladores MVC                                 [D · pendiente]
-├─ service/                       CatalogoService, MantenimientoService             [A · listo]
-│                                 PrestamoService, BibliotecaFacade, etc.           [B · pendiente]
-├─ repository/                    Libro/Ejemplar/Mantenimiento Repository           [A · listo]
-│  └─ jdbc/                       Jdbc* de los tres anteriores                      [A · listo]
-├─ security/                      Login, permisos y Proxy                           [C · pendiente]
-├─ event/                         Observer + eventos                                [D · pendiente]
-└─ config/                        Database (conexión SQLite y transacciones)        [A · listo]
-src/main/resources/db/            schema-catalogo.sql (+ un schema por módulo)
-src/test/java/                    Pruebas JUnit 5
-docs/                             UML y decisiones del equipo (PARTE_A.md)
+├─ view/                          Frames y paneles Swing con Look & Feel Nimbus     [D · listo]
+├─ controller/                    Controladores MVC y gestión de excepciones        [D · listo]
+├─ service/                       Catalogo, Mantenimiento, Prestamo, Dashboard      [A/B/D · listo]
+│                                 y BibliotecaFacade                                [B · listo]
+├─ repository/                    Interfaces Lector/Libro/Ejemplar/Prestamo/Usuario [A/B/C · listo]
+│  └─ jdbc/                       Jdbc* de todos los repositorios                   [A/B/C · listo]
+├─ security/                      Login, permisos (Proxy) y HashContrasena          [C · listo]
+├─ event/                         Observer + eventos para el Dashboard              [D · listo]
+└─ config/                        Database (conexión unificada SQLite)              [A · listo]
+src/main/resources/db/            schema-catalogo.sql, schema-prestamos.sql y schema-seguridad.sql
+src/test/java/                    Pruebas de Integración (JUnit 5 + BD en Memoria)
 ```
 
 ## 6. Modelo de dominio
@@ -71,21 +70,21 @@ docs/                             UML y decisiones del equipo (PARTE_A.md)
 | `Libro` | ISBN, título, autor, editorial, año, categoría, activo | `actualizarDatos()`, `desactivar()` |
 | `Ejemplar` | código único, libro, estado | `prestar()`, `devolver()`, `devolverConDanio()`, `enviarAMantenimiento()`, `habilitar()` |
 | `RegistroMantenimiento` | ejemplar, motivo, ingreso, habilitación | `finalizar()`, `estaAbierto()` |
-| `Lector` | código universitario, nombre, correo, tipo, activo | `actualizarDatos()`, `desactivar()` *(B)* |
-| `Prestamo` | lector, ejemplar, operador, inicio, límite, devolución | `estaVencido(fecha)`, `cerrar()` *(B)* |
-| `UsuarioSistema` | usuario, hash de contraseña, rol, activo | `tieneRol()`, `estaActivo()` *(C)* |
+| `Lector` | código universitario, nombre, correo, tipo, activo | `actualizarDatos()`, `desactivar()` |
+| `Prestamo` | lector, ejemplar, operador, inicio, límite, devolución | `estaVencido(fecha)`, `cerrar()` |
+| `UsuarioSistema` | usuario, hash de contraseña, rol, activo | `tieneRol()`, `estaActivo()` |
 
 Relaciones: Libro 1:N Ejemplar; Ejemplar 1:N Préstamo (histórico); Lector 1:N Préstamo; el personal registra préstamos; Ejemplar 1:N RegistroMantenimiento.
 
-## 7. Patrones GoF
+## 7. Patrones GoF Implementados
 
 | Patrón | Participantes | Estado |
 |---|---|---|
 | **State** | `EstadoEjemplar` + `EstadoDisponible`, `EstadoPrestado`, `EstadoEnMantenimiento` | Implementado (A) |
-| **Facade** | `BibliotecaOperaciones` + `BibliotecaFacade`: coordina préstamos, devoluciones y mantenimiento desde el controller | Pendiente (B) |
-| **Proxy** | `GestionCuentas`, `GestionCuentasReal`, `GestionCuentasProxy`: autoriza tareas exclusivas del administrador | Pendiente (C) |
-| **Observer** | `ObservadorEvento`, `PublicadorEventos`, `ObservadorDashboard`: actualiza vistas tras operaciones confirmadas | Pendiente (D) |
-| **Factory\*** | Creadores de cuentas/perfiles. Validar Factory Method en el UML; no forzarlo si un único tipo con rol basta | A decidir |
+| **Facade** | `BibliotecaOperaciones` + `BibliotecaFacade`: coordina préstamos, devoluciones y mantenimiento. | Implementado (B) |
+| **Proxy** | `GestionCuentas`, `GestionCuentasReal`, `GestionCuentasProxy`: autoriza tareas de administrador. | Implementado (C) |
+| **Observer** | `ObservadorEvento`, `PublicadorEventos`, `ObservadorDashboard`: actualiza el tablero numérico. | Implementado (D) |
+| **Factory** | `GestionCuentasFactory`: aísla la creación del proxy de seguridad. | Implementado (C) |
 
 ### State: transiciones permitidas
 
@@ -97,71 +96,35 @@ Relaciones: Libro 1:N Ejemplar; Ejemplar 1:N Préstamo (histórico); Lector 1:N 
 | `enviarAMantenimiento()` | Disponible | En mantenimiento |
 | `habilitar()` | En mantenimiento | Disponible |
 
-Cualquier otra combinación lanza `TransicionInvalidaException`. Un ejemplar **prestado** no puede enviarse a mantenimiento directamente: primero se devuelve (con daño si corresponde). Los objetos de estado no tienen datos propios y se reutilizan como singletons (`INSTANCIA`). Para persistir se usa `TipoEstado` (se guarda como texto: `DISPONIBLE`, `PRESTADO`, `EN_MANTENIMIENTO`) y `EstadoEjemplar.desde(TipoEstado)` reconstruye el estado.
-
-## 8. Contratos entre módulos
+## 8. Contratos de Integración Final
 
 **Base de datos y transacciones** (`config.Database`)
-- Una única conexión compartida (app de escritorio). Los repositorios JDBC reciben `Database` por constructor y usan `db.conexion()`.
-- Para agrupar operaciones: `db.enTransaccion(() -> { ... })`. Es **reentrante**: si ya hay una transacción abierta, el bloque interno participa en ella; si algo lanza excepción, se hace rollback de todo.
-- `db.inicializarEsquema("/db/schema-catalogo.sql", "/db/schema-prestamos.sql", ...)`: cada módulo aporta su propio `schema-*.sql`. El orden importa si hay claves foráneas (por ejemplo, hacia `ejemplar`).
-- Para obtener el id de una fila recién insertada se usa `db.ultimoIdInsertado()` (`last_insert_rowid()`), **no** `getGeneratedKeys()` (no es portable entre versiones del driver).
-- Las fechas se guardan como texto ISO-8601 (`LocalDate`/`LocalDateTime.toString()`).
+- Conexión compartida. Los repositorios JDBC reciben `Database` por constructor y usan `db.conexion()`.
+- Operaciones atómicas: `db.enTransaccion(() -> { ... })`. Es **reentrante**; si algo lanza excepción, ocurre un rollback general.
+- Inicialización en `Main.java` carga los 3 scripts SQL unificados de `src/main/resources/db/`.
+- Se usa `db.ultimoIdInsertado()` (`last_insert_rowid()`) para llaves autogeneradas.
 
-**Errores**
-- Reglas de negocio incumplidas → `service.ReglaNegocioException` con mensaje listo para mostrar al usuario.
-- Fallos de acceso a datos → `repository.RepositorioException` (envuelve `SQLException`).
-- Datos inválidos en el modelo → `IllegalArgumentException`; los servicios la convierten a `ReglaNegocioException`.
-- Transición de estado inválida → `TransicionInvalidaException`; los servicios la convierten a `ReglaNegocioException`.
+**Manejo de Errores en Capas**
+- Reglas incumplidas → `service.ReglaNegocioException`. 
+- Los controladores MVC capturan explícitamente `ReglaNegocioException` (nunca `RuntimeException` genérico) y muestran `getMessage()` en los diálogos Swing.
+- Fallos de datos → `repository.RepositorioException` (envuelve `SQLException`).
 
-**Para B (Préstamos / Facade)**
-- Prestar: `ejemplar.prestar()` + `ejemplarRepository.actualizar(ejemplar)` + insertar el préstamo, todo dentro de `db.enTransaccion(...)`.
-- Devolución dañada: `ejemplar.devolverConDanio()` + `ejemplarRepository.actualizar(...)` + `mantenimientoService.registrarIngresoPorDanio(id, motivo)`, en la misma transacción.
-- Eventos Observer: publicar **solo después** del `COMMIT`.
+**Fachada y Eventos**
+- Prestar y Devolver: Operaciones atómicas delegadas en la fachada que gestionan los repositorios de préstamos, el cambio de estado del ejemplar y el mantenimiento simultáneamente.
+- El `DashboardService` calcula sus indicadores reutilizando los conteos de los repositorios originales.
+- Las notificaciones `Observer` se publican únicamente tras un *COMMIT* exitoso para refrescar la vista.
 
-**Para D (Presentación / Dashboard)**
-- Búsqueda: `catalogoService.buscarLibros(texto)` (título, autor, ISBN o código de ejemplar; solo libros activos).
-- Dashboard: `libroRepository.contarActivos()` y `ejemplarRepository.contarPorEstado(TipoEstado.X)`.
-- Los controladores atrapan `ReglaNegocioException` y muestran `getMessage()` en un diálogo.
+## 9. Convenciones de código establecidas
 
-**Para C (Seguridad)**
-- El Proxy puede envolver `CatalogoService` y `MantenimientoService` si se decide restringir operaciones por rol. El administrador es el único que crea/desactiva cuentas del personal.
+- Cero SQL fuera de `repository.jdbc`. Uso exclusivo de `PreparedStatement`.
+- Swing y los controladores ignoran por completo los repositorios; su acceso es a través de servicios o la fachada.
+- Contraseñas protegidas mediante Hash (PBKDF2), con creación automática de cuenta `admin` por defecto si la BD es nueva (`admin` / `Admin123*`).
+- Pruebas unitarias de integración apuntan siempre a SQLite en memoria (`Database.enMemoria()`).
 
-## 9. Convenciones de código
-
-- Cero SQL fuera de `repository.jdbc`. Siempre `PreparedStatement` con parámetros `?`; nunca concatenar datos del usuario en el SQL.
-- Las vistas y controladores no acceden a repositorios; hablan con servicios o con la fachada.
-- Entidades nuevas: constructor para "nuevo" (sin id) y constructor para "reconstruir desde BD" (con id); `asignarId(long)` solo se llama desde el repositorio al insertar.
-- Validar en el constructor/métodos del modelo; las reglas que involucran varios objetos o la BD van en el servicio.
-- Contraseñas: solo hash (nunca texto plano), en `security`.
-- Prefiere cambios pequeños y enfocados al módulo que te corresponde. No cambies firmas públicas de otro módulo sin avisar: acordar las interfaces antes de implementar.
-- No agregar dependencias nuevas al `pom.xml` sin acuerdo del equipo.
-
-## 10. Comandos
+## 10. Comandos y Distribución
 
 ```bash
-mvn test                 # compila y ejecuta todas las pruebas
-mvn package              # genera el JAR en target/
-mvn -q -DskipTests package
+mvn test                 # compila y ejecuta toda la suite de pruebas A, B, C y D
+mvn exec:java -Dexec.mainClass="edu.biblioteca.Main" # ejecuta la interfaz Swing
+mvn -q -DskipTests package # genera el JAR de escritorio en target/
 ```
-
-Las pruebas de integración usan SQLite **en memoria** (`Database.enMemoria()`): no necesitan ningún archivo `.db`. Toda funcionalidad nueva debe traer pruebas JUnit 5; antes de abrir un Pull Request, `mvn test` debe pasar completo.
-
-## 11. División del equipo
-
-| Responsable | Alcance principal |
-|---|---|
-| **A · Catálogo/State** | Libro, Ejemplar, mantenimiento, estados y repositorios relacionados. |
-| **B · Préstamos** | Lector, Prestamo, servicios, Facade y transacciones. |
-| **C · Seguridad** | UsuarioSistema, autenticación, roles, Proxy y alta de cuentas. |
-| **D · Presentación** | Swing, controladores MVC, Dashboard, Observer e integración. |
-
-Pantallas Swing obligatorias: Login/Personal, Libros, Lectores, Préstamos, Mantenimiento y Dashboard (total de libros, ejemplares disponibles, préstamos activos y vencidos).
-
-## 12. Flujo de trabajo en GitHub
-
-`main` estable → issue → rama `feature/modulo-tarea` → commits pequeños → Pull Request → revisión → pruebas → merge.
-
-- **No subir** archivos `.db`, la carpeta `target/` ni credenciales.
-- Un agente de IA trabaja siempre sobre una rama, nunca directamente sobre `main`.
-- Mensajes de commit en español, en imperativo o descriptivos ("Agregar préstamo con transacción").
