@@ -9,6 +9,8 @@ import edu.biblioteca.security.Rol;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -46,6 +48,30 @@ public class JdbcUsuarioSistemaRepository implements UsuarioSistemaRepository {
             }
         } catch (SQLException | IllegalArgumentException ex) {
             throw new RepositorioException("No se pudo buscar la cuenta.", ex);
+        }
+    }
+
+    @Override
+    public List<UsuarioSistema> listar() {
+        String sql = """
+                SELECT usuario, hash_contrasena, rol, activo
+                FROM usuario_sistema
+                ORDER BY usuario
+                """;
+        try (PreparedStatement consulta = db.conexion().prepareStatement(sql);
+             ResultSet resultado = consulta.executeQuery()) {
+            List<UsuarioSistema> lista = new ArrayList<>();
+            while (resultado.next()) {
+                lista.add(new UsuarioSistema(
+                        resultado.getString("usuario"),
+                        resultado.getString("hash_contrasena"),
+                        Rol.valueOf(resultado.getString("rol")),
+                        resultado.getInt("activo") == 1
+                ));
+            }
+            return lista;
+        } catch (SQLException | IllegalArgumentException ex) {
+            throw new RepositorioException("No se pudieron listar las cuentas.", ex);
         }
     }
 

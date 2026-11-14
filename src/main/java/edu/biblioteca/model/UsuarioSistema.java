@@ -39,12 +39,4 @@ public class UsuarioSistema {
     public boolean isActivo() {
         return estaActivo();
     }
-
-    public void setRol(Rol rol) {
-        this.rol = Objects.requireNonNull(rol, "El rol no puede ser nulo");
-    }
-
-    public void setActivo(boolean activo) {
-        this.activo = activo;
-    }
 }

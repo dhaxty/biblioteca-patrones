@@ -20,22 +20,28 @@ public class BibliotecaFacade implements BibliotecaOperaciones {
     public static final String EVENTO_MANTENIMIENTO_ACTUALIZADO = "MANTENIMIENTO_ACTUALIZADO";
 
     private final Database db;
+    private final CatalogoService catalogo;
     private final PrestamoService prestamos;
     private final MantenimientoService mantenimiento;
     private final Consumer<String> eventos;
 
-    public BibliotecaFacade(Database db, PrestamoService prestamos,
+    public BibliotecaFacade(Database db, CatalogoService catalogo, PrestamoService prestamos,
                             MantenimientoService mantenimiento, Consumer<String> eventos) {
         this.db = Objects.requireNonNull(db, "Database no puede ser nulo");
+        this.catalogo = catalogo;
         this.prestamos = Objects.requireNonNull(prestamos, "PrestamoService no puede ser nulo");
         this.mantenimiento = Objects.requireNonNull(mantenimiento, "MantenimientoService no puede ser nulo");
         this.eventos = eventos;
     }
 
+    public BibliotecaFacade(Database db, PrestamoService prestamos,
+                            MantenimientoService mantenimiento, Consumer<String> eventos) {
+        this(db, null, prestamos, mantenimiento, eventos);
+    }
+
     @Override
     public Prestamo prestar(String codigoLector, String codigoEjemplar, long operadorId) {
-        Prestamo prestamo = db.enTransaccion(
-                () -> prestamos.prestar(codigoLector, codigoEjemplar, operadorId));
+        Prestamo prestamo = prestamos.prestar(codigoLector, codigoEjemplar, operadorId);
         notificar(EVENTO_PRESTAMO_REGISTRADO);
         return prestamo;
     }
@@ -64,20 +70,23 @@ public class BibliotecaFacade implements BibliotecaOperaciones {
 
     @Override
     public void retirarEjemplarAMantenimiento(String codigoEjemplar, String motivo) {
-        db.enTransaccion(() -> {
-            Ejemplar ejemplar = prestamos.buscarEjemplar(codigoEjemplar);
-            mantenimiento.retirarEjemplar(ejemplar.getId(), motivo);
-        });
+        Ejemplar ejemplar = buscarEjemplar(codigoEjemplar);
+        mantenimiento.retirarEjemplar(ejemplar.getId(), motivo);
         notificar(EVENTO_MANTENIMIENTO_ACTUALIZADO);
     }
 
     @Override
     public void habilitarEjemplar(String codigoEjemplar) {
-        db.enTransaccion(() -> {
-            Ejemplar ejemplar = prestamos.buscarEjemplar(codigoEjemplar);
-            mantenimiento.habilitarEjemplar(ejemplar.getId());
-        });
+        Ejemplar ejemplar = buscarEjemplar(codigoEjemplar);
+        mantenimiento.habilitarEjemplar(ejemplar.getId());
         notificar(EVENTO_MANTENIMIENTO_ACTUALIZADO);
+    }
+
+    private Ejemplar buscarEjemplar(String codigoEjemplar) {
+        if (catalogo != null) {
+            return catalogo.buscarEjemplar(codigoEjemplar);
+        }
+        return prestamos.buscarEjemplar(codigoEjemplar);
     }
 
     @Override

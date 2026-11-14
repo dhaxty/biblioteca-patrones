@@ -67,10 +67,10 @@ src/test/java/                    Pruebas de Integración (JUnit 5 + BD en Memor
 
 | Clase | Datos esenciales | Métodos |
 |---|---|---|
-| `Libro` | ISBN, título, autor, editorial, año, categoría, activo | `actualizarDatos()`, `desactivar()` |
+| `Libro` | ISBN, título, autor, editorial, año, categoría, activo | `desactivar()` |
 | `Ejemplar` | código único, libro, estado | `prestar()`, `devolver()`, `devolverConDanio()`, `enviarAMantenimiento()`, `habilitar()` |
 | `RegistroMantenimiento` | ejemplar, motivo, ingreso, habilitación | `finalizar()`, `estaAbierto()` |
-| `Lector` | código universitario, nombre, correo, tipo, activo | `actualizarDatos()`, `desactivar()` |
+| `Lector` | código universitario, nombre, correo, tipo, activo | `desactivar()` |
 | `Prestamo` | lector, ejemplar, operador, inicio, límite, devolución | `estaVencido(fecha)`, `cerrar()` |
 | `UsuarioSistema` | usuario, hash de contraseña, rol, activo | `tieneRol()`, `estaActivo()` |
 

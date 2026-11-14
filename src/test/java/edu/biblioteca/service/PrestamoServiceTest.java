@@ -48,7 +48,7 @@ class PrestamoServiceTest {
     @Test
     void prestarMarcaEjemplarComoPrestadoYRegistraElPrestamo() {
         Prestamo p = servicioEn(LocalDate.of(2026, 11, 2)).prestar("U001", "EJ-1", 99);
-        assertEquals(TipoEstado.PRESTADO, ejemplares.datos.get("EJ-1").getTipoEstado());
+        assertEquals(TipoEstado.PRESTADO, ejemplares.porCodigo.get("EJ-1").getTipoEstado());
         assertEquals(LocalDate.of(2026, 11, 9), p.getFechaLimite());
         assertEquals(99, p.getOperadorId());
     }
@@ -60,7 +60,7 @@ class PrestamoServiceTest {
             s.prestar("U001", "EJ-" + i, 1);
         }
         assertThrows(ReglaNegocioException.class, () -> s.prestar("U001", "EJ-6", 1));
-        assertEquals(TipoEstado.DISPONIBLE, ejemplares.datos.get("EJ-6").getTipoEstado());
+        assertEquals(TipoEstado.DISPONIBLE, ejemplares.porCodigo.get("EJ-6").getTipoEstado());
     }
 
     @Test
@@ -94,7 +94,7 @@ class PrestamoServiceTest {
         s.prestar("U001", "EJ-1", 1);
         Prestamo cerrado = s.devolver("EJ-1");
         assertFalse(cerrado.estaActivo());
-        assertEquals(TipoEstado.DISPONIBLE, ejemplares.datos.get("EJ-1").getTipoEstado());
+        assertEquals(TipoEstado.DISPONIBLE, ejemplares.porCodigo.get("EJ-1").getTipoEstado());
     }
 
     @Test

@@ -31,12 +31,6 @@ public class Lector {
         return new Lector(id, codigoUniversitario, nombre, correo, tipo, activo);
     }
 
-    public void actualizarDatos(String nombre, String correo, TipoLector tipo) {
-        this.nombre = requerirTexto(nombre, "nombre");
-        this.correo = requerirTexto(correo, "correo");
-        this.tipo = java.util.Objects.requireNonNull(tipo, "tipo");
-    }
-
     /** Baja lógica: el historial de préstamos se conserva. */
     public void desactivar() {
         this.activo = false;

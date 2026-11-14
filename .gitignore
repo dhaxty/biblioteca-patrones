@@ -2,3 +2,4 @@ target/
 *.db
 .idea/
 nbproject/private/
+docs/auditoria/

@@ -29,15 +29,17 @@ public class CatalogoService {
         return libros.guardar(libro);
     }
 
-    public Libro editarLibro(long libroId, String titulo, String autor,
-                             String editorial, int anio, String categoria) {
-        Libro libro = obtenerLibro(libroId);
-        convertirErrores(() -> {
-            libro.actualizarDatos(titulo, autor, editorial, anio, categoria);
-            return null;
-        });
-        libros.actualizar(libro);
-        return libro;
+    public Optional<Libro> buscarLibroPorIsbn(String isbn) {
+        if (isbn == null || isbn.isBlank()) {
+            return Optional.empty();
+        }
+        return libros.buscarPorIsbn(isbn.trim());
+    }
+
+    public Ejemplar agregarEjemplar(String isbn, String codigo) {
+        Libro libro = buscarLibroPorIsbn(isbn)
+                .orElseThrow(() -> new ReglaNegocioException("No se encontró el libro con ISBN: " + isbn));
+        return agregarEjemplar(libro.getId(), codigo);
     }
 
     public Ejemplar agregarEjemplar(long libroId, String codigo) {
@@ -66,8 +68,29 @@ public class CatalogoService {
         return ejemplares.listarPorLibro(libroId);
     }
 
+    public List<Ejemplar> listarEjemplares(String isbn) {
+        return buscarLibroPorIsbn(isbn)
+                .map(l -> listarEjemplares(l.getId()))
+                .orElse(List.of());
+    }
+
     public Optional<Ejemplar> buscarEjemplarPorCodigo(String codigo) {
         return ejemplares.buscarPorCodigo(codigo == null ? "" : codigo.trim());
+    }
+
+    public Ejemplar buscarEjemplar(String codigo) {
+        if (codigo == null || codigo.isBlank()) {
+            throw new ReglaNegocioException("Debe indicar el código del ejemplar.");
+        }
+        return ejemplares.buscarPorCodigo(codigo.trim())
+                .orElseThrow(() -> new ReglaNegocioException("No existe un ejemplar con código " + codigo.trim()));
+    }
+
+    /** Desactivación lógica: el historial se conserva. No se permite con ejemplares prestados. */
+    public void desactivarLibro(String isbn) {
+        Libro libro = buscarLibroPorIsbn(isbn)
+                .orElseThrow(() -> new ReglaNegocioException("No se encontró el libro con ISBN: " + isbn));
+        desactivarLibro(libro.getId());
     }
 
     /** Desactivación lógica: el historial se conserva. No se permite con ejemplares prestados. */

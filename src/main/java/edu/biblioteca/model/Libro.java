@@ -28,10 +28,6 @@ public class Libro {
         asignarDatos(titulo, autor, editorial, anio, categoria);
     }
 
-    public void actualizarDatos(String titulo, String autor, String editorial, int anio, String categoria) {
-        asignarDatos(titulo, autor, editorial, anio, categoria);
-    }
-
     public void desactivar() {
         this.activo = false;
     }

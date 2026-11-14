@@ -5,6 +5,7 @@ import edu.biblioteca.repository.UsuarioSistemaRepository;
 import edu.biblioteca.service.ReglaNegocioException;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 final class GestionCuentasReal implements GestionCuentas {
@@ -50,5 +51,10 @@ final class GestionCuentasReal implements GestionCuentas {
             throw new ReglaNegocioException("El usuario es obligatorio.");
         }
         repositorio.desactivar(usuario.trim());
+    }
+
+    @Override
+    public List<UsuarioSistema> listarCuentas() {
+        return repositorio.listar();
     }
 }

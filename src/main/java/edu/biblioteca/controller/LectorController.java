@@ -4,25 +4,21 @@ import edu.biblioteca.event.PublicadorEventos;
 import edu.biblioteca.event.TipoEvento;
 import edu.biblioteca.model.Lector;
 import edu.biblioteca.model.TipoLector;
-import edu.biblioteca.repository.LectorRepository;
 import edu.biblioteca.service.LectorService;
 import edu.biblioteca.service.ReglaNegocioException;
 import edu.biblioteca.view.LectoresPanel;
 
 import java.util.List;
-import java.util.Optional;
 
 public class LectorController {
 
     private final LectoresPanel vista;
     private final LectorService servicio;
-    private final LectorRepository lectorRepository;
     private final PublicadorEventos eventos;
 
-    public LectorController(LectoresPanel vista, LectorService servicio, LectorRepository lectorRepository, PublicadorEventos eventos) {
+    public LectorController(LectoresPanel vista, LectorService servicio, PublicadorEventos eventos) {
         this.vista = vista;
         this.servicio = servicio;
-        this.lectorRepository = lectorRepository;
         this.eventos = eventos;
 
         vista.addRegistrarListener(e -> registrar());
@@ -37,10 +33,6 @@ public class LectorController {
         });
 
         refrescar();
-    }
-
-    public LectorController(LectoresPanel vista, LectorService servicio, PublicadorEventos eventos) {
-        this(vista, servicio, null, eventos);
     }
 
     private void registrar() {
@@ -64,9 +56,7 @@ public class LectorController {
             return;
         }
         try {
-            Lector lector = buscarLectorPorCodigo(codigo)
-                    .orElseThrow(() -> new ReglaNegocioException("No se encontró el lector seleccionado."));
-            servicio.desactivarLector(lector.getId());
+            servicio.desactivarLector(codigo);
             eventos.publicar(TipoEvento.LECTORES_CAMBIO);
             vista.mostrarMensaje("Lector desactivado (su historial se conserva).");
         } catch (ReglaNegocioException | IllegalArgumentException ex) {
@@ -87,17 +77,5 @@ public class LectorController {
                 })
                 .toList();
         vista.mostrarLectores(filas);
-    }
-
-    private Optional<Lector> buscarLectorPorCodigo(String codigo) {
-        if (codigo == null || codigo.isBlank()) {
-            return Optional.empty();
-        }
-        if (lectorRepository != null) {
-            return lectorRepository.buscarPorCodigo(codigo.trim());
-        }
-        return servicio.buscarLector(codigo.trim()).stream()
-                .filter(l -> l.getCodigoUniversitario().equalsIgnoreCase(codigo.trim()))
-                .findFirst();
     }
 }

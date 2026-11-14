@@ -30,8 +30,7 @@ public class PrestamosPanel extends PanelBase {
     private final JButton btnVerVencidos = new JButton("Ver vencidos");
 
     private final DefaultTableModel modelo = crearModelo("Lector", "Ejemplar", "Inicio", "Límite", "Operador");
-    private final JTable tabla = crearTabla(modelo);
-    private final JScrollPane scrollTabla = new JScrollPane(tabla);
+    private final JScrollPane scrollTabla;
 
     public PrestamosPanel() {
         JPanel formulario = apilar(
@@ -41,6 +40,9 @@ public class PrestamosPanel extends PanelBase {
                         chkDanado, btnDevolver),
                 fila(btnVerActivos, btnVerVencidos));
         add(formulario, BorderLayout.NORTH);
+
+        JTable tabla = crearTabla(modelo);
+        this.scrollTabla = new JScrollPane(tabla);
         add(scrollTabla, BorderLayout.CENTER);
     }
 

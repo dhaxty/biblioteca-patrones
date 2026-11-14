@@ -2,6 +2,7 @@ package edu.biblioteca.repository.jdbc;
 
 import edu.biblioteca.config.Database;
 import edu.biblioteca.model.RegistroMantenimiento;
+import edu.biblioteca.model.RegistroMantenimientoDetalle;
 import edu.biblioteca.repository.MantenimientoRepository;
 import edu.biblioteca.repository.RepositorioException;
 
@@ -64,6 +65,32 @@ public class JdbcMantenimientoRepository implements MantenimientoRepository {
     public List<RegistroMantenimiento> listarPorEjemplar(long ejemplarId) {
         return consultar("SELECT " + COLUMNAS
                 + " FROM registro_mantenimiento WHERE ejemplar_id = ? ORDER BY id DESC", ejemplarId);
+    }
+
+    @Override
+    public List<RegistroMantenimientoDetalle> listarHistorialCompleto() {
+        String sql = """
+                SELECT e.codigo, r.motivo, r.ingreso, r.habilitacion
+                FROM registro_mantenimiento r
+                JOIN ejemplar e ON r.ejemplar_id = e.id
+                ORDER BY r.id DESC
+                """;
+        try (PreparedStatement ps = db.conexion().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            List<RegistroMantenimientoDetalle> lista = new ArrayList<>();
+            while (rs.next()) {
+                String hab = rs.getString("habilitacion");
+                lista.add(new RegistroMantenimientoDetalle(
+                        rs.getString("codigo"),
+                        rs.getString("motivo"),
+                        LocalDateTime.parse(rs.getString("ingreso")),
+                        hab == null ? null : LocalDateTime.parse(hab)
+                ));
+            }
+            return lista;
+        } catch (SQLException e) {
+            throw new RepositorioException("No se pudo consultar el historial completo de mantenimiento.", e);
+        }
     }
 
     private List<RegistroMantenimiento> consultar(String sql, Object parametro) {

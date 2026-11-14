@@ -21,10 +21,6 @@ public class LoginController {
         this.vista.addIngresarListener(e -> intentarIngreso());
     }
 
-    public LoginController(LoginFrame vista, AutenticacionService servicio, Runnable alIngresar) {
-        this(vista, servicio, s -> alIngresar.run());
-    }
-
     private void intentarIngreso() {
         String usuario = vista.getUsuario();
         String clave = vista.getClave();

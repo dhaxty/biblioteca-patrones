@@ -4,7 +4,6 @@ import edu.biblioteca.event.PublicadorEventos;
 import edu.biblioteca.event.TipoEvento;
 import edu.biblioteca.model.Ejemplar;
 import edu.biblioteca.model.Libro;
-import edu.biblioteca.repository.LibroRepository;
 import edu.biblioteca.service.CatalogoService;
 import edu.biblioteca.service.ReglaNegocioException;
 import edu.biblioteca.view.LibrosPanel;
@@ -13,19 +12,16 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public class LibroController {
 
     private final LibrosPanel vista;
     private final CatalogoService servicio;
-    private final LibroRepository libroRepository;
     private final PublicadorEventos eventos;
 
-    public LibroController(LibrosPanel vista, CatalogoService servicio, LibroRepository libroRepository, PublicadorEventos eventos) {
+    public LibroController(LibrosPanel vista, CatalogoService servicio, PublicadorEventos eventos) {
         this.vista = vista;
         this.servicio = servicio;
-        this.libroRepository = libroRepository;
         this.eventos = eventos;
 
         // Conectar los botones de la vista con las acciones de este controlador
@@ -50,10 +46,6 @@ public class LibroController {
         refrescar();
     }
 
-    public LibroController(LibrosPanel vista, CatalogoService servicio, PublicadorEventos eventos) {
-        this(vista, servicio, null, eventos);
-    }
-
     private void registrar() {
         try {
             int anioActual = Year.now().getValue();
@@ -75,9 +67,7 @@ public class LibroController {
             return;
         }
         try {
-            Libro libro = buscarLibroPorIsbn(isbn)
-                    .orElseThrow(() -> new ReglaNegocioException("No se encontró el libro seleccionado."));
-            servicio.agregarEjemplar(libro.getId(), vista.getCodigoEjemplar());
+            servicio.agregarEjemplar(isbn, vista.getCodigoEjemplar());
             vista.limpiarFormulario();
             eventos.publicar(TipoEvento.CATALOGO_CAMBIO);
             vista.mostrarMensaje("Ejemplar agregado correctamente.");
@@ -95,9 +85,7 @@ public class LibroController {
             return;
         }
         try {
-            Libro libro = buscarLibroPorIsbn(isbn)
-                    .orElseThrow(() -> new ReglaNegocioException("No se encontró el libro seleccionado."));
-            servicio.desactivarLibro(libro.getId());
+            servicio.desactivarLibro(isbn);
             eventos.publicar(TipoEvento.CATALOGO_CAMBIO);
             vista.mostrarMensaje("Libro desactivado (su historial se conserva).");
         } catch (ReglaNegocioException | IllegalArgumentException ex) {
@@ -133,28 +121,11 @@ public class LibroController {
         if (isbn == null) {
             vista.mostrarEjemplares(Collections.emptyList());
         } else {
-            Optional<Libro> libroOpt = buscarLibroPorIsbn(isbn);
-            if (libroOpt.isPresent() && libroOpt.get().getId() != null) {
-                List<Ejemplar> ejemplares = servicio.listarEjemplares(libroOpt.get().getId());
-                List<String[]> filas = ejemplares.stream()
-                        .map(e -> new String[]{e.getCodigo(), e.getTipoEstado().etiqueta()})
-                        .toList();
-                vista.mostrarEjemplares(filas);
-            } else {
-                vista.mostrarEjemplares(Collections.emptyList());
-            }
+            List<Ejemplar> ejemplares = servicio.listarEjemplares(isbn);
+            List<String[]> filas = ejemplares.stream()
+                    .map(e -> new String[]{e.getCodigo(), e.getTipoEstado().etiqueta()})
+                    .toList();
+            vista.mostrarEjemplares(filas);
         }
-    }
-
-    private Optional<Libro> buscarLibroPorIsbn(String isbn) {
-        if (isbn == null || isbn.isBlank()) {
-            return Optional.empty();
-        }
-        if (libroRepository != null) {
-            return libroRepository.buscarPorIsbn(isbn.trim());
-        }
-        return servicio.buscarLibros(isbn.trim()).stream()
-                .filter(l -> l.getIsbn().equalsIgnoreCase(isbn.trim()))
-                .findFirst();
     }
 }

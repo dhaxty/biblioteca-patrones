@@ -15,8 +15,6 @@ public interface EjemplarRepository {
 
     Optional<Ejemplar> buscarPorCodigo(String codigo);
 
-    List<Ejemplar> listar();
-
     List<Ejemplar> listarPorLibro(long libroId);
 
     List<Ejemplar> listarPorEstado(TipoEstado estado);

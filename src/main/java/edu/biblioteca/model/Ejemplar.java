@@ -61,10 +61,6 @@ public class Ejemplar {
         this.estado = Objects.requireNonNull(nuevoEstado);
     }
 
-    public boolean estaDisponible() {
-        return estado.tipo() == TipoEstado.DISPONIBLE;
-    }
-
     /** Lo usa el repositorio al insertar. Solo se puede asignar una vez. */
     public void asignarId(long id) {
         if (this.id != null) {
@@ -76,7 +72,6 @@ public class Ejemplar {
     public Long getId() { return id; }
     public String getCodigo() { return codigo; }
     public long getLibroId() { return libroId; }
-    public EstadoEjemplar getEstado() { return estado; }
     public TipoEstado getTipoEstado() { return estado.tipo(); }
 
     @Override

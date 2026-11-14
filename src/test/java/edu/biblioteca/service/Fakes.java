@@ -32,7 +32,6 @@ final class Fakes {
 
     static class Ejemplares implements EjemplarRepository {
         final Map<String, Ejemplar> porCodigo = new HashMap<>();
-        final Map<String, Ejemplar> datos = porCodigo;
 
         Ejemplar agregar(long id, String codigo, TipoEstado e) {
             Ejemplar x = EjemplarDePrueba.crear(id, codigo, e);
@@ -45,7 +44,6 @@ final class Fakes {
             return porCodigo.values().stream().filter(e -> e.getId() != null && e.getId() == id).findFirst();
         }
         @Override public Optional<Ejemplar> buscarPorCodigo(String c) { return Optional.ofNullable(porCodigo.get(c)); }
-        @Override public List<Ejemplar> listar() { return new ArrayList<>(porCodigo.values()); }
         @Override public List<Ejemplar> listarPorLibro(long libroId) { return List.of(); }
         @Override public List<Ejemplar> listarPorEstado(TipoEstado estado) {
             return porCodigo.values().stream().filter(e -> e.getTipoEstado() == estado).toList();

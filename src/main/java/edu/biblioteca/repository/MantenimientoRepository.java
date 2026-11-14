@@ -1,6 +1,7 @@
 package edu.biblioteca.repository;
 
 import edu.biblioteca.model.RegistroMantenimiento;
+import edu.biblioteca.model.RegistroMantenimientoDetalle;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +18,7 @@ public interface MantenimientoRepository {
 
     /** Historial completo del ejemplar, del más reciente al más antiguo. */
     List<RegistroMantenimiento> listarPorEjemplar(long ejemplarId);
+
+    /** Historial consolidado de mantenimientos con código de ejemplar, ordenado del más reciente al más antiguo. */
+    List<RegistroMantenimientoDetalle> listarHistorialCompleto();
 }

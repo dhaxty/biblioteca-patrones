@@ -49,11 +49,6 @@ public class JdbcEjemplarRepository implements EjemplarRepository {
     }
 
     @Override
-    public List<Ejemplar> listar() {
-        return consultar("SELECT " + COLUMNAS + " FROM ejemplar ORDER BY codigo");
-    }
-
-    @Override
     public List<Ejemplar> listarPorLibro(long libroId) {
         return consultar("SELECT " + COLUMNAS + " FROM ejemplar WHERE libro_id = ? ORDER BY codigo", libroId);
     }

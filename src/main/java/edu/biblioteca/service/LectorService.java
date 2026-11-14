@@ -40,22 +40,16 @@ public class LectorService {
         });
     }
 
-    public Lector editarLector(long id, String nombre, String correo, TipoLector tipo) {
-        String nom = texto(nombre, "El nombre es obligatorio");
-        String mail = validarCorreo(correo);
-        if (tipo == null) {
-            throw new ReglaNegocioException("Debe indicar si es estudiante o docente");
-        }
-        return db.enTransaccion(() -> {
-            Lector lector = obtener(id);
-            lector.actualizarDatos(nom, mail, tipo);
-            lectores.actualizar(lector);
-            return lector;
-        });
-    }
-
     public List<Lector> buscarLector(String texto) {
         return lectores.buscar(texto);
+    }
+
+    /** Baja lógica por código universitario. */
+    public void desactivarLector(String codigoUniversitario) {
+        String codigo = texto(codigoUniversitario, "El código universitario es obligatorio");
+        Lector lector = lectores.buscarPorCodigo(codigo)
+                .orElseThrow(() -> new ReglaNegocioException("No existe el lector con código " + codigo));
+        desactivarLector(lector.getId());
     }
 
     /** Baja lógica. No se permite si el lector todavía tiene libros sin devolver. */

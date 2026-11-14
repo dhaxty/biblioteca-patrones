@@ -1,6 +1,8 @@
 package edu.biblioteca.security;
 
+import edu.biblioteca.model.UsuarioSistema;
 import edu.biblioteca.service.ReglaNegocioException;
+import java.util.List;
 import java.util.Objects;
 
 public class GestionCuentasProxy implements GestionCuentas {
@@ -22,6 +24,12 @@ public class GestionCuentasProxy implements GestionCuentas {
     public void desactivarCuenta(String usuario) {
         verificarPermiso();
         servicioReal.desactivarCuenta(usuario);
+    }
+
+    @Override
+    public List<UsuarioSistema> listarCuentas() {
+        verificarPermiso();
+        return servicioReal.listarCuentas();
     }
 
     private void verificarPermiso() {

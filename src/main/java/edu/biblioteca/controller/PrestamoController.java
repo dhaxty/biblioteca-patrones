@@ -47,15 +47,10 @@ public class PrestamoController {
         refrescar();
     }
 
-    public PrestamoController(PrestamosPanel vista, BibliotecaOperaciones facade, PublicadorEventos eventos) {
-        this(vista, facade, eventos, 1L);
-    }
-
     private void prestar() {
         try {
             facade.prestar(vista.getCodigoLector(), vista.getCodigoEjemplarPrestar(), operadorId);
             vista.limpiarPrestar();
-            eventos.publicar(TipoEvento.PRESTAMOS_CAMBIO); // solo después de guardar con éxito
             vista.mostrarMensaje("Préstamo registrado correctamente.");
         } catch (ReglaNegocioException | IllegalArgumentException ex) {
             vista.mostrarError(ex.getMessage());
@@ -70,11 +65,6 @@ public class PrestamoController {
             String motivo = danado ? "Devuelto con daño por el usuario" : null;
             facade.devolver(vista.getCodigoEjemplarDevolver(), danado, motivo);
             vista.limpiarDevolver();
-            // La devolución puede mandar el ejemplar a mantenimiento: avisamos a ambos.
-            eventos.publicar(TipoEvento.PRESTAMOS_CAMBIO);
-            if (danado) {
-                eventos.publicar(TipoEvento.MANTENIMIENTO_CAMBIO);
-            }
             vista.mostrarMensaje("Devolución registrada correctamente.");
         } catch (ReglaNegocioException | IllegalArgumentException ex) {
             vista.mostrarError(ex.getMessage());

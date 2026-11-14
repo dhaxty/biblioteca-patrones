@@ -35,7 +35,6 @@ public class LibrosPanel extends PanelBase {
     private final DefaultTableModel modeloLibros = crearModelo("ISBN", "Título", "Autor", "Categoría", "Ejemplares");
     private final JTable tablaLibros = crearTabla(modeloLibros);
     private final DefaultTableModel modeloEjemplares = crearModelo("Código", "Estado");
-    private final JTable tablaEjemplares = crearTabla(modeloEjemplares);
 
     public LibrosPanel() {
         JPanel formulario = apilar(
@@ -45,6 +44,7 @@ public class LibrosPanel extends PanelBase {
                 fila(new JLabel("Código del ejemplar"), txtCodigoEjemplar, btnAgregarEjemplar));
         add(formulario, BorderLayout.NORTH);
 
+        JTable tablaEjemplares = crearTabla(modeloEjemplares);
         JScrollPane scrollLibros = new JScrollPane(tablaLibros);
         JScrollPane scrollEjemplares = new JScrollPane(tablaEjemplares);
         scrollEjemplares.setBorder(javax.swing.BorderFactory.createTitledBorder("Ejemplares del libro seleccionado"));

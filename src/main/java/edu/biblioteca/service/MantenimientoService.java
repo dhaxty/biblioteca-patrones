@@ -3,6 +3,7 @@ package edu.biblioteca.service;
 import edu.biblioteca.config.Database;
 import edu.biblioteca.model.Ejemplar;
 import edu.biblioteca.model.RegistroMantenimiento;
+import edu.biblioteca.model.RegistroMantenimientoDetalle;
 import edu.biblioteca.model.estado.TipoEstado;
 import edu.biblioteca.model.estado.TransicionInvalidaException;
 import edu.biblioteca.repository.EjemplarRepository;
@@ -79,6 +80,11 @@ public class MantenimientoService {
 
     public List<RegistroMantenimiento> consultarHistorial(long ejemplarId) {
         return mantenimientos.listarPorEjemplar(ejemplarId);
+    }
+
+    /** Historial consolidado de mantenimiento de todos los ejemplares (optimizado en una sola consulta). */
+    public List<RegistroMantenimientoDetalle> consultarHistorialCompleto() {
+        return mantenimientos.listarHistorialCompleto();
     }
 
     /** Ejemplares actualmente fuera de circulación (para el panel de mantenimiento). */

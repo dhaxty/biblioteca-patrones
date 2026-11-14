@@ -53,11 +53,6 @@ public class JdbcLibroRepository implements LibroRepository {
     }
 
     @Override
-    public List<Libro> listar() {
-        return consultar("SELECT " + COLUMNAS + " FROM libro ORDER BY titulo COLLATE NOCASE");
-    }
-
-    @Override
     public List<Libro> buscar(String texto, boolean soloActivos) {
         String patron = "%" + (texto == null ? "" : texto.trim().toLowerCase()) + "%";
         String sql = "SELECT " + COLUMNAS + " FROM libro WHERE "
